@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Flask_Chat_App</title>
+</head>
+<body>
+
+  <h3 style='color: #ccc;font-size: 30px;'>No message ..</h3>
+  <div class="message_holder"></div>
+  <!-- Custom Video -->
+  <video src="" id="video" style="width:100%; height: 100%;" autoplay="true"></video>
+  <canvas style="display:none;" id="preview"></canvas>
+  <div id="log"></div>
+  <!--  -->
+
+  <form action="" method="POST">
+    <input type="text" class="username" placeholder="User Name"/>
+    <input type="text" class="message" placeholder="Messages"/>
+    <input type="submit"/>
+  </form>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+  <script type="text/javascript">
+    // var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    // socket.on( 'connect', function() {
+    //   socket.emit( 'my event', {
+    //     data: 'User Connected'
+    //   } )
+    //   var form = $( 'form' ).on( 'submit', function( e ) {
+    //     e.preventDefault()
+    //     let user_name = $( 'input.username' ).val()
+    //     let user_input = $( 'input.message' ).val()
+    //     socket.emit( 'my event', {
+    //       user_name : user_name,
+    //       message : user_input
+    //     } )
+    //     $( 'input.message' ).val( '' ).focus()
+    //   } )
+    // } )
+    // socket.on( 'my response', function( msg ) {
+    //   console.log( msg )
+    //   if( typeof msg.user_name !== 'undefined' ) {
+    //     $( 'h3' ).remove()
+    //     $( 'div.message_holder' ).append( '<div><b style="color: #000">'+msg.user_name+'</b> '+msg.message+'</div>' )
+    //   }
+    // })
+
+
+    // videos
+    var canvas = document.getElementById("preview");
+            var context = canvas.getContext('2d');
+        
+            canvas.width = 640;
+            canvas.height = 480;
+        
+            context.width = canvas.width;
+            context.height = canvas.height;
+        
+            var video = document.getElementById("video");
+        
+
+
+            var socket = io.connect('https://' + document.domain + ':' + location.port,{secure:true,reconnect: true,rejectUnauthorized: false}); 
+            console.log(document.domain + ':' + location.port)       
+            function logger(msg){
+                $('#log').text(msg);
+            }
+        
+            function loadCamera(stream){
+              try {
+                  video.srcObject = stream;
+                //   socket.emit('streamVideo',stream);
+              } 
+              
+              catch (error) {
+               video.src = URL.createObjectURL(stream);
+              }
+               logger("Camera connected");
+            }
+        
+            function loadFail(){
+                logger("Camera not connected");
+            }
+        
+            function Draw(video,context){
+                context.drawImage(video,0,0,context.width,context.height);
+                socket.emit('stream',canvas.toDataURL('image/jpeg'));
+                logger('sending to server')   
+            }
+        
+            $(function(){
+                navigator.getUserMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msgGetUserMedia );
+            
+                if(navigator.getUserMedia)
+                {
+                    navigator.getUserMedia({
+                        video: true, 
+                        audio: false
+                    },loadCamera,loadFail);
+                }
+
+                // setInterval(loadCamera,0.1)
+                
+                setInterval(function(){
+                    Draw(video,context);
+                },0.1);
+            });
+  </script>
+
+</body>
+</html>
